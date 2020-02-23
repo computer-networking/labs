@@ -119,6 +119,37 @@ function container::remove_storage () {
     fi
 }
 
+function container::create_container () {
+    declare container_name="${1?Missing 1st argument container name}"
+    declare container_path="${CONTAINERS_PATH:?}/${container_name}"
+
+    # 1- Protect the main parent namespace from receiving unwanted mount events
+    mount --make-rprivate /
+
+    # 2- Create the new namespaces
+    unshare --mount --uts --ipc --net --pid --fork bash -l -c """
+
+    # 3- Change the process root directory
+    cd ${container_path}/merged
+    mkdir oldroot
+    pivot_root . oldroot
+    cd /
+    export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/sbin
+
+    # 4- Unmount unused mounts
+    umount -l /oldroot # --lazy
+    umount -a
+
+    # 5- Load regular mounts
+    mount -t proc proc proc/
+    mount -t sysfs sys sys/
+    mount -o bind /dev dev/
+
+    # 6- Replace the process bash image with a process inside the container
+    exec chroot / sh
+    """
+}
+
 ###############################################################################
 
 # Work in progress..
