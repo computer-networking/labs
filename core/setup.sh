@@ -130,12 +130,13 @@ function container::create_container () {
     ip netns add "$container_name"
 
     # 2- Create the new namespaces
-    ip netns exec "$container_name" bash -l -c '''
-        unshare --mount --uts --ipc --pid --fork bash -l -c """
+    ip netns exec "$container_name" bash -l -c """
+        unshare --mount --uts --ipc --pid --fork bash -l -c '''
 
+        set -x
         # 3- Change the process root directory
-        cd ${container_path}/merged
-        mkdir oldroot
+        cd "${container_path}"/merged
+        mkdir -p oldroot
         pivot_root . oldroot
         cd /
         export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/sbin
@@ -151,8 +152,8 @@ function container::create_container () {
 
         # 6- Replace the process bash image with a process inside the container
         exec chroot / sh
-        """
-    '''
+        '''
+    """
 }
 
 function container::remove_container () {
