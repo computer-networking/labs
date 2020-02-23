@@ -149,7 +149,10 @@ function container::create_container () {
         mount -t sysfs sys sys/
         mount -o bind /dev dev/
 
-        # 6- Replace the process bash image with a process inside the container
+        # 6- Set the hostname to the container name
+        hostname "$container_name"
+
+        # 7- Replace the process bash image with a process inside the container
         exec chroot / sh
         '''
     """
