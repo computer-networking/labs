@@ -155,9 +155,12 @@ function container::create_container () {
     '''
 }
 
-###############################################################################
+function container::remove_container () {
+    declare container_name="${1?Missing 1st argument container name}"
+    declare container_path="${CONTAINERS_PATH:?}/${container_name}"
 
-# Work in progress..
-setup::prepare_folders
-image::download
-image::remove
+    # 1- TODO: Check how to track and finish processes inside it.
+
+    # 2- Remove the network namespace
+    ip netns del "$container_name"
+}
