@@ -129,17 +129,16 @@ function container::create_container () {
     # 2- Creaate the network namespace to be managed by IP(8)
     ip netns add "$container_name"
 
-    # 2- Create the new namespaces
+    # 2- Create the new namespaces in new shell process with a clean env
     ip netns exec "$container_name" bash -l -c """
-        unshare --mount --uts --ipc --pid --fork bash -l -c '''
+        unshare --mount --uts --ipc --pid --fork env -i bash -l -c '''
 
-        set -x
         # 3- Change the process root directory
         cd "${container_path}"/merged
         mkdir -p oldroot
         pivot_root . oldroot
         cd /
-        export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/sbin
+        . /etc/profile
 
         # 4- Unmount unused mounts
         umount -l /oldroot # --lazy
